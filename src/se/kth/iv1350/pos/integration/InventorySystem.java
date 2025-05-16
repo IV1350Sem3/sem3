@@ -5,6 +5,7 @@ import java.util.Map;
 import se.kth.iv1350.pos.model.Amount;
 import se.kth.iv1350.pos.model.ItemDTO;
 import se.kth.iv1350.pos.model.Sale;
+import se.kth.iv1350.pos.model.ItemNotFoundException;
 
 /**
  * Represents the inventory system.
@@ -26,11 +27,23 @@ public class InventorySystem {
      * Gets information about an item.
      *
      * @param itemIdentifier The item identifier.
-     * @return Information about the item, or null if the item was not found.
+     * @return Information about the item.
+     * @throws ItemNotFoundException if the item with the specified identifier was not found.
+     * @throws DatabaseFailureException if the database could not be called.
      */
-    public ItemDTO getItem(String itemIdentifier) {
-        return inventory.get(itemIdentifier);
+    public ItemDTO getItem(String itemIdentifier) throws ItemNotFoundException {
+        // Simulate database failure for a specific hardcoded item
+        if (itemIdentifier.equals("database-failure")) {
+            throw new DatabaseFailureException("Could not connect to inventory database");
+        }
+
+        ItemDTO item = inventory.get(itemIdentifier);
+        if (item == null) {
+            throw new ItemNotFoundException(itemIdentifier);
+        }
+        return item;
     }
+
 
     /**
      * Updates the inventory with the sold items.
@@ -41,4 +54,6 @@ public class InventorySystem {
         // This would update the inventory in a real system
         System.out.println("Inventory updated");
     }
+
 }
+

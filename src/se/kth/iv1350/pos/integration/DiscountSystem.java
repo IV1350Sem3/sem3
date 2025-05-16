@@ -2,22 +2,28 @@ package se.kth.iv1350.pos.integration;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import se.kth.iv1350.pos.model.Amount;
 import se.kth.iv1350.pos.model.DiscountDTO;
 import se.kth.iv1350.pos.model.Sale;
+import se.kth.iv1350.pos.model.strategy.DiscountStrategy;
+import se.kth.iv1350.pos.model.strategy.PercentageDiscountStrategy;
+import se.kth.iv1350.pos.model.strategy.FixedAmountDiscountStrategy;
 
 /**
  * Represents the discount system.
  */
 public class DiscountSystem {
-    private Map<String, Double> discounts;
+    private Map<String, DiscountStrategy> discountStrategies;
 
     /**
      * Creates a new instance with some dummy discounts.
      */
     public DiscountSystem() {
-        discounts = new HashMap<>();
-        discounts.put("12345", 0.1); // 10% discount
-        discounts.put("67890", 0.2); // 20% discount
+        discountStrategies = new HashMap<>();
+        discountStrategies.put("12345", new PercentageDiscountStrategy(0.1)); // 10% discount
+        discountStrategies.put("67890", new PercentageDiscountStrategy(0.2)); // 20% discount
+        discountStrategies.put("11111", new FixedAmountDiscountStrategy(new Amount(50))); // 50 fixed discount
     }
 
     /**
@@ -28,10 +34,13 @@ public class DiscountSystem {
      * @return The discount for the customer.
      */
     public DiscountDTO getDiscount(String customerID, Sale sale) {
-        Double discountRate = discounts.get(customerID);
-        if (discountRate == null) {
-            discountRate = 0.0;
+        DiscountStrategy strategy = discountStrategies.get(customerID);
+        if (strategy == null) {
+            return new DiscountDTO(customerID, 0.0);
         }
+
+        Amount discountAmount = strategy.calculateDiscount(sale, customerID);
+        double discountRate = discountAmount.getAmount() / sale.getTotal().getAmount();
         return new DiscountDTO(customerID, discountRate);
     }
 }

@@ -1,22 +1,35 @@
 package se.kth.iv1350.pos.integration;
 
 /**
- * Creates instances of external systems.
+ * Creates instances of external systems. This class is a singleton.
  */
 public class RegistryCreator {
+    private static RegistryCreator instance;
     private InventorySystem inventorySystem;
     private AccountingSystem accountingSystem;
     private DiscountSystem discountSystem;
     private Printer printer;
 
     /**
-     * Creates a new instance.
+     * Private constructor to prevent instantiation from outside.
      */
-    public RegistryCreator() {
+    private RegistryCreator() {
         inventorySystem = new InventorySystem();
         accountingSystem = new AccountingSystem();
         discountSystem = new DiscountSystem();
         printer = new Printer();
+    }
+
+    /**
+     * Gets the single instance of this class.
+     *
+     * @return The single instance of this class.
+     */
+    public static RegistryCreator getInstance() {
+        if (instance == null) {
+            instance = new RegistryCreator();
+        }
+        return instance;
     }
 
     /**

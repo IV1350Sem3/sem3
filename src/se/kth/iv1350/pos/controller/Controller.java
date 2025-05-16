@@ -1,6 +1,10 @@
 package se.kth.iv1350.pos.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import se.kth.iv1350.pos.integration.AccountingSystem;
+import se.kth.iv1350.pos.integration.DatabaseFailureException;
 import se.kth.iv1350.pos.integration.DiscountSystem;
 import se.kth.iv1350.pos.integration.InventorySystem;
 import se.kth.iv1350.pos.integration.Printer;
@@ -9,9 +13,11 @@ import se.kth.iv1350.pos.model.Amount;
 import se.kth.iv1350.pos.model.CashRegister;
 import se.kth.iv1350.pos.model.DiscountDTO;
 import se.kth.iv1350.pos.model.ItemDTO;
+import se.kth.iv1350.pos.model.ItemNotFoundException;
 import se.kth.iv1350.pos.model.Payment;
 import se.kth.iv1350.pos.model.ReceiptDTO;
 import se.kth.iv1350.pos.model.Sale;
+import se.kth.iv1350.pos.model.observer.TotalRevenueObserver;
 
 /**
  * This is the application's only controller. All calls to the model pass through this class.
@@ -23,6 +29,8 @@ public class Controller {
     private Printer printer;
     private CashRegister cashRegister;
     private Sale currentSale;
+    private Amount totalRevenue;
+    private List<TotalRevenueObserver> revenueObservers = new ArrayList<>();
 
     /**
      * Creates a new instance.
@@ -35,6 +43,25 @@ public class Controller {
         this.discountSystem = creator.getDiscountSystem();
         this.printer = creator.getPrinter();
         this.cashRegister = new CashRegister();
+        this.totalRevenue = new Amount(0);
+    }
+
+    /**
+     * Registers an observer to be notified when total revenue changes.
+     *
+     * @param observer The observer to register.
+     */
+    public void addRevenueObserver(TotalRevenueObserver observer) {
+        revenueObservers.add(observer);
+    }
+
+    /**
+     * Removes an observer so it will no longer be notified of total revenue changes.
+     *
+     * @param observer The observer to remove.
+     */
+    public void removeRevenueObserver(TotalRevenueObserver observer) {
+        revenueObservers.remove(observer);
     }
 
     /**
@@ -49,14 +76,17 @@ public class Controller {
      *
      * @param itemIdentifier The identifier of the item to add.
      * @return Information about the entered item and running total.
+     * @throws ItemNotFoundException if the item with the specified identifier was not found.
+     * @throws OperationFailedException if the item could not be added due to a technical error.
      */
-    public String enterItem(String itemIdentifier) {
-        ItemDTO item = inventorySystem.getItem(itemIdentifier);
-        if (item == null) {
-            return "Item not found";
+    public String enterItem(String itemIdentifier) throws ItemNotFoundException, OperationFailedException {
+        try {
+            ItemDTO item = inventorySystem.getItem(itemIdentifier);
+            currentSale.addItem(item);
+            return item.getName() + ", " + item.getPrice() + ", Running total: " + currentSale.getRunningTotal();
+        } catch (DatabaseFailureException e) {
+            throw new OperationFailedException("Could not register item. Please try again.", e);
         }
-        currentSale.addItem(item);
-        return item.getName() + ", " + item.getPrice() + ", Running total: " + currentSale.getRunningTotal();
     }
 
     /**
@@ -92,6 +122,17 @@ public class Controller {
         inventorySystem.updateInventory(currentSale);
         ReceiptDTO receipt = currentSale.generateReceipt();
         printer.printReceipt(receipt);
+
+        // Update total revenue and notify observers
+        totalRevenue = totalRevenue.add(currentSale.getTotal());
+        notifyObservers();
+
         return payment.getChange();
+    }
+
+    private void notifyObservers() {
+        for (TotalRevenueObserver observer : revenueObservers) {
+            observer.updateTotalRevenue(totalRevenue);
+        }
     }
 }

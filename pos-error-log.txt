@@ -1,0 +1,18 @@
+May 17, 2025, 12:08:45 AM, Exception was thrown: Could not register item. Please try again.
+se.kth.iv1350.pos.controller.OperationFailedException: Could not register item. Please try again.
+	at se.kth.iv1350.pos.controller.Controller.enterItem(Controller.java:88)
+	at se.kth.iv1350.pos.view.View.runFakeExecution(View.java:62)
+	at se.kth.iv1350.pos.startup.Main.main(Main.java:33)
+Caused by: se.kth.iv1350.pos.integration.DatabaseFailureException: Could not connect to inventory database
+	at se.kth.iv1350.pos.integration.InventorySystem.getItem(InventorySystem.java:37)
+	at se.kth.iv1350.pos.controller.Controller.enterItem(Controller.java:84)
+	... 2 more
+May 17, 2025, 12:10:23 AM, Exception was thrown: Could not register item. Please try again.
+se.kth.iv1350.pos.controller.OperationFailedException: Could not register item. Please try again.
+	at se.kth.iv1350.pos.controller.Controller.enterItem(Controller.java:88)
+	at se.kth.iv1350.pos.view.View.runFakeExecution(View.java:62)
+	at se.kth.iv1350.pos.startup.Main.main(Main.java:33)
+Caused by: se.kth.iv1350.pos.integration.DatabaseFailureException: Could not connect to inventory database
+	at se.kth.iv1350.pos.integration.InventorySystem.getItem(InventorySystem.java:37)
+	at se.kth.iv1350.pos.controller.Controller.enterItem(Controller.java:84)
+	... 2 more
