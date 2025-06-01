@@ -1,12 +1,11 @@
 package se.kth.iv1350.pos.controller;
 
 import static org.junit.Assert.*;
-
 import org.junit.Before;
 import org.junit.Test;
-
 import se.kth.iv1350.pos.integration.RegistryCreator;
 import se.kth.iv1350.pos.model.ItemNotFoundException;
+import se.kth.iv1350.pos.model.SaleDTO;
 
 public class ControllerTest {
     private Controller controller;
@@ -19,8 +18,10 @@ public class ControllerTest {
 
     @Test
     public void testEnterExistingItem() throws ItemNotFoundException, OperationFailedException {
-        String result = controller.enterItem("milk");
-        assertTrue("Result should contain milk", result.contains("milk"));
+        SaleDTO result = controller.enterItem("milk");
+        assertNotNull("Result should not be null", result);
+        assertNotNull("Last added item should not be null", result.getLastAddedItem());
+        assertTrue("Result should contain milk", result.getLastAddedItem().getName().contains("Milk"));
     }
 
     @Test(expected = ItemNotFoundException.class)

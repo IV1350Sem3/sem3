@@ -2,9 +2,10 @@ package se.kth.iv1350.pos.integration;
 
 import java.util.HashMap;
 import java.util.Map;
+
 import se.kth.iv1350.pos.model.Amount;
 import se.kth.iv1350.pos.model.ItemDTO;
-import se.kth.iv1350.pos.model.Sale;
+import se.kth.iv1350.pos.model.SaleDTO;
 import se.kth.iv1350.pos.model.ItemNotFoundException;
 
 /**
@@ -41,19 +42,17 @@ public class InventorySystem {
         if (item == null) {
             throw new ItemNotFoundException(itemIdentifier);
         }
+
         return item;
     }
-
 
     /**
      * Updates the inventory with the sold items.
      *
-     * @param sale The sale containing the sold items.
+     * @param sale The sale information containing the sold items.
      */
-    public void updateInventory(Sale sale) {
+    public void updateInventory(SaleDTO sale) {
         // This would update the inventory in a real system
         System.out.println("Inventory updated");
     }
-
 }
-

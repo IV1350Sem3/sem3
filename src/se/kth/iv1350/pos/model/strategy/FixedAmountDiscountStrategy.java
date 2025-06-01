@@ -1,7 +1,7 @@
 package se.kth.iv1350.pos.model.strategy;
 
 import se.kth.iv1350.pos.model.Amount;
-import se.kth.iv1350.pos.model.Sale;
+import se.kth.iv1350.pos.model.SaleDTO;
 
 /**
  * A discount strategy that applies a fixed amount discount.
@@ -19,7 +19,7 @@ public class FixedAmountDiscountStrategy implements DiscountStrategy {
     }
 
     @Override
-    public Amount calculateDiscount(Sale sale, String customerID) {
+    public Amount calculateDiscount(SaleDTO sale, String customerID) {
         return discountAmount;
     }
 }

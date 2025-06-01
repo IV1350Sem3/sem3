@@ -3,91 +3,81 @@ package se.kth.iv1350.pos.model;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import se.kth.iv1350.pos.model.observer.SaleObserver;
 
 /**
  * Represents one sale transaction.
  */
 public class Sale {
-    private LocalDateTime saleTime;
-    private List<ItemDTO> items;
-    private Amount runningTotal;
+    private final LocalDateTime saleTime = LocalDateTime.now();
+    private final List<ItemDTO> items = new ArrayList<>();
+    private Amount runningTotal = new Amount(0);
     private DiscountDTO discount;
+    private final List<SaleObserver> saleObservers = new ArrayList<>();
 
-    /**
-     * Creates a new instance and sets the sale time.
-     */
-    public Sale() {
-        this.saleTime = LocalDateTime.now();
-        this.items = new ArrayList<>();
-        this.runningTotal = new Amount(0);
+    public void addSaleObserver(SaleObserver obs) {
+        saleObservers.add(obs);
     }
 
-    /**
-     * Adds an item to the sale.
-     *
-     * @param item The item to add.
-     */
+    public void removeSaleObserver(SaleObserver obs) {
+        saleObservers.remove(obs);
+    }
+
+    private void notifySaleObservers() {
+        SaleDTO dto = createSaleDTO(null);
+        for (SaleObserver obs : saleObservers) {
+            obs.saleUpdated(dto);
+        }
+    }
+
     public void addItem(ItemDTO item) {
-        boolean itemExists = false;
-        for (ItemDTO existingItem : items) {
-            if (existingItem.getIdentifier().equals(item.getIdentifier())) {
-                existingItem.increaseQuantity();
-                itemExists = true;
+        boolean exists = false;
+        for (ItemDTO e : items) {
+            if (e.getIdentifier().equals(item.getIdentifier())) {
+                e.increaseQuantity();
+                exists = true;
                 break;
             }
         }
-
-        if (!itemExists) {
+        if (!exists) {
             items.add(item);
         }
-
         updateRunningTotal();
+        notifySaleObservers();
     }
 
-    /**
-     * Gets the running total of the sale.
-     *
-     * @return The running total.
-     */
     public Amount getRunningTotal() {
         return runningTotal;
     }
 
-    /**
-     * Gets the total price of the sale.
-     *
-     * @return The total price.
-     */
     public Amount getTotal() {
         return runningTotal;
     }
 
-    /**
-     * Applies discount to the sale.
-     *
-     * @param discount The discount to apply.
-     * @return The total after discount.
-     */
-    public Amount applyDiscount(DiscountDTO discount) {
-        this.discount = discount;
-        Amount discountAmount = runningTotal.multiply(discount.getDiscountRate());
-        return runningTotal.subtract(discountAmount);
+    public SaleDTO createSaleDTO(ItemDTO lastAddedItem) {
+        return new SaleDTO(getItems(), runningTotal, lastAddedItem);
     }
 
-    /**
-     * Generates a receipt for the sale.
-     *
-     * @return The receipt.
-     */
+    public Amount applyDiscount(DiscountDTO discount) {
+        this.discount = discount;
+        Amount discounted = runningTotal.multiply(discount.getDiscountRate());
+        notifySaleObservers();
+        return runningTotal.subtract(discounted);
+    }
+
     public ReceiptDTO generateReceipt() {
+        notifySaleObservers();
         return new ReceiptDTO(saleTime, items, runningTotal, discount);
     }
 
     private void updateRunningTotal() {
         runningTotal = new Amount(0);
-        for (ItemDTO item : items) {
-            Amount itemTotal = item.getPrice().multiply(item.getQuantity());
-            runningTotal = runningTotal.add(itemTotal);
+        for (ItemDTO i : items) {
+            runningTotal = runningTotal.add(i.getPrice().multiply(i.getQuantity()));
         }
+    }
+
+    public List<ItemDTO> getItems() {
+        return new ArrayList<>(items);
     }
 }
