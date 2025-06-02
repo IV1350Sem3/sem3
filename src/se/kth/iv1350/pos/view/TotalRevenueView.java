@@ -1,12 +1,11 @@
 package se.kth.iv1350.pos.view;
 
-import se.kth.iv1350.pos.model.Amount;
-import se.kth.iv1350.pos.model.observer.TotalRevenueObserver;
+import se.kth.iv1350.pos.model.observer.TotalRevenueTemplate;
 
 /**
  * Shows the total income of all sales on the user interface.
  */
-public class TotalRevenueView implements TotalRevenueObserver {
+public class TotalRevenueView extends TotalRevenueTemplate {
 
     /**
      * Creates a new instance.
@@ -16,7 +15,12 @@ public class TotalRevenueView implements TotalRevenueObserver {
     }
 
     @Override
-    public void updateTotalRevenue(Amount totalRevenue) {
-        System.out.println("*** DISPLAY: Total revenue is now: " + totalRevenue + " ***");
+    protected void doShowTotalIncome() throws Exception {
+        System.out.println("*** DISPLAY: Total revenue is now: " + getTotalRevenue() + " ***");
+    }
+
+    @Override
+    protected void handleErrors(Exception e) {
+        System.err.println("Error displaying total revenue: " + e.getMessage());
     }
 }

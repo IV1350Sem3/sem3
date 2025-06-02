@@ -7,13 +7,12 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.FormatStyle;
 
-import se.kth.iv1350.pos.model.Amount;
-import se.kth.iv1350.pos.model.observer.TotalRevenueObserver;
+import se.kth.iv1350.pos.model.observer.TotalRevenueTemplate;
 
 /**
  * Writes the total income of all sales to a file.
  */
-public class TotalRevenueFileOutput implements TotalRevenueObserver {
+public class TotalRevenueFileOutput extends TotalRevenueTemplate {
     private static final String REVENUE_FILE_NAME = "revenue.txt";
     private PrintWriter revenueFile;
 
@@ -27,12 +26,18 @@ public class TotalRevenueFileOutput implements TotalRevenueObserver {
     }
 
     @Override
-    public void updateTotalRevenue(Amount totalRevenue) {
+    protected void doShowTotalIncome() throws Exception {
         StringBuilder builder = new StringBuilder();
         builder.append(createTime());
         builder.append(", Total revenue: ");
-        builder.append(totalRevenue);
+        builder.append(getTotalRevenue());
         revenueFile.println(builder);
+    }
+
+    @Override
+    protected void handleErrors(Exception e) {
+        System.err.println("Error writing to revenue file: " + e.getMessage());
+        e.printStackTrace();
     }
 
     private String createTime() {
