@@ -30,7 +30,6 @@ public class Controller {
     private final Printer printer;
     private final CashRegister cashRegister;
     private Sale currentSale;
-    private Amount totalRevenue = new Amount(0);
     private final List<TotalRevenueObserver> revenueObservers = new ArrayList<>();
 
     public Controller(RegistryCreator creator) {
@@ -50,6 +49,9 @@ public class Controller {
 
     public void startNewSale() {
         this.currentSale = new Sale();
+        for (TotalRevenueObserver obs : revenueObservers) {
+            this.currentSale.addTotalRevenueObserver(obs);
+        }
     }
 
     public SaleDTO enterItem(String itemIdentifier)
@@ -87,15 +89,6 @@ public class Controller {
         ReceiptDTO receipt = currentSale.generateReceipt();
         printer.printReceipt(receipt);
 
-        totalRevenue = totalRevenue.add(currentSale.getTotal());
-        notifyObservers();  // remains for revenue observers only
-
         return payment.getChange();
-    }
-
-    private void notifyObservers() {
-        for (TotalRevenueObserver obs : revenueObservers) {
-            obs.updateTotalRevenue(totalRevenue);
-        }
     }
 }

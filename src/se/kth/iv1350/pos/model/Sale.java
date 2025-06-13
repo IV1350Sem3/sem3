@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import se.kth.iv1350.pos.model.observer.SaleObserver;
+import se.kth.iv1350.pos.model.observer.TotalRevenueObserver;
 
 /**
  * Represents one sale transaction.
@@ -14,6 +15,7 @@ public class Sale {
     private Amount runningTotal = new Amount(0);
     private DiscountDTO discount;
     private final List<SaleObserver> saleObservers = new ArrayList<>();
+    private final List<TotalRevenueObserver> totalRevenueObservers = new ArrayList<>();
 
     public void addSaleObserver(SaleObserver obs) {
         saleObservers.add(obs);
@@ -23,10 +25,20 @@ public class Sale {
         saleObservers.remove(obs);
     }
 
+    public void addTotalRevenueObserver(TotalRevenueObserver obs) {
+        totalRevenueObservers.add(obs);
+    }
+
     private void notifySaleObservers() {
         SaleDTO dto = createSaleDTO(null);
         for (SaleObserver obs : saleObservers) {
             obs.saleUpdated(dto);
+        }
+    }
+
+    private void notifyTotalRevenueObservers() {
+        for (TotalRevenueObserver obs : totalRevenueObservers) {
+            obs.updateTotalRevenue(runningTotal);
         }
     }
 
@@ -67,6 +79,7 @@ public class Sale {
 
     public ReceiptDTO generateReceipt() {
         notifySaleObservers();
+        notifyTotalRevenueObservers();
         return new ReceiptDTO(saleTime, items, runningTotal, discount);
     }
 
